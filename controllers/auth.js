@@ -37,6 +37,7 @@ const crearUsuario = async(req, res = response) => {
       ok: true,
       uid: dbUser.id,
       name,
+      email,
       token
     });
 
@@ -78,7 +79,8 @@ const loginUsuario = async (req, res = response) => {
     return res.json({
       ok:true,
       uid: dbUser.id, 
-      name: dbUser.id, 
+      name: dbUser.name, 
+      email,
       token
     });
 
@@ -91,10 +93,6 @@ const loginUsuario = async (req, res = response) => {
     });
   }
 
-  // return res.json({
-  //   ok: true,
-  //   msg: 'Login de usuario /'
-  // })
 }
 
 const revalidarToken = async(req, res = response) => {
@@ -109,17 +107,24 @@ const revalidarToken = async(req, res = response) => {
   // }
 
   // the middleware put the ouid, name
-  const {uid, name} = req;
+  const {uid} = req;
+
+  const dbUser = await Usuario.findById(uid); 
+  if ( !dbUser ) {
+    return res.status(500).json({
+      ok:false,
+      msg: 'Usuario no encontrado en DB'
+    });
+  }
 
   // 
-  const token = await generarJWT(uid, name);
+  const token = await generarJWT(uid, dbUser.name);
 
   return res.json({
     ok: true,
-    //msg: 'Renew',
-    //token
     uid, 
-    name,
+    name:dbUser.name,
+    email:dbUser.email,
     token
   })
 }
